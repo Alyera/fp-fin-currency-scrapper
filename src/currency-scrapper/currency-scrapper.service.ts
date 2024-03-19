@@ -9,8 +9,8 @@ import exp from 'constants';
 export class CurrencyScrapperService {
   constructor(private readonly httpService: HttpService) {}
 
-  @Cron(CronExpression.EVERY_DAY_AT_7PM)
-  //@Cron(CronExpression.EVERY_MINUTE)
+  //@Cron(CronExpression.EVERY_DAY_AT_7PM)
+  @Cron(CronExpression.EVERY_MINUTE)
   async scrapeExchangeRates() {
     const browser = await puppeteer.launch({ headless: 'new' });
     const page = await browser.newPage();
@@ -164,7 +164,7 @@ export class CurrencyScrapperService {
       console.log(error.response.data);
     } */
 
-    const url = 'http://localhost:3100/currency/rates/' + ratesDatePart[0];
+    const url = 'http://10.160.10.92:3100/currency/rates/' + ratesDatePart[0];
     console.log(url);
 
     if (ratesDatePart[0] != '') {
@@ -188,7 +188,7 @@ export class CurrencyScrapperService {
           try {
             const resEur = await lastValueFrom(
               this.httpService
-                .post('http://localhost:3100/currency', JSON.stringify(eur), {
+                .post('http://10.160.10.92:3100/currency', JSON.stringify(eur), {
                   headers: { 'Content-Type': 'application/json' },
                 })
                 .pipe(
@@ -204,7 +204,7 @@ export class CurrencyScrapperService {
           try {
             const resUsd = await lastValueFrom(
               this.httpService
-                .post('http://localhost:3100/currency', JSON.stringify(usd), {
+                .post('http://10.160.10.92:3100/currency', JSON.stringify(usd), {
                   headers: { 'Content-Type': 'application/json' },
                 })
                 .pipe(
@@ -220,7 +220,7 @@ export class CurrencyScrapperService {
           try {
             const resPtr = await lastValueFrom(
               this.httpService
-                .post('http://localhost:3100/currency', JSON.stringify(ptr), {
+                .post('http://10.160.10.92:3100/currency', JSON.stringify(ptr), {
                   headers: { 'Content-Type': 'application/json' },
                 })
                 .pipe(
