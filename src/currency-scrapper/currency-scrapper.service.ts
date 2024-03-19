@@ -12,7 +12,10 @@ export class CurrencyScrapperService {
   //@Cron(CronExpression.EVERY_DAY_AT_7PM)
   @Cron(CronExpression.EVERY_MINUTE)
   async scrapeExchangeRates() {
-    const browser = await puppeteer.launch({ headless: 'new' });
+    const browser = await puppeteer.launch({
+      headless: 'new',
+      executablePath: '/usr/bin/chromium-browser',
+    });
     const page = await browser.newPage();
     let ratesDate = '';
     let euroRate = '';
@@ -79,8 +82,8 @@ export class CurrencyScrapperService {
     );
     const expndate = new Date('1900-01-01');
 
-    const eursubstr = euroRate.substring(0,5).replace(',', '.') + '00000'
-    const usdsubstr = dolarRate.substring(0,5).replace(',', '.') + '00000'
+    const eursubstr = euroRate.substring(0, 5).replace(',', '.') + '00000';
+    const usdsubstr = dolarRate.substring(0, 5).replace(',', '.') + '00000';
     //const ptrsubstr = prtRate.substring(0,4).replace(',', '.') + '00000'
 
     const eur = {
@@ -105,9 +108,11 @@ export class CurrencyScrapperService {
 
     console.log(usd);
 
-    const ptrCalc = parseFloat(prtRate.replace(',', '.')) * parseFloat(dolarRate.replace(',', '.'))
-    const ptrFinal = ptrCalc.toString().slice(0,7)
-    console.log(ptrFinal)
+    const ptrCalc =
+      parseFloat(prtRate.replace(',', '.')) *
+      parseFloat(dolarRate.replace(',', '.'));
+    const ptrFinal = ptrCalc.toString().slice(0, 7);
+    console.log(ptrFinal);
     const ptr = {
       EXGTBLID: 'VEB/PTR',
       CURNCYID: 'PTR',
@@ -188,9 +193,13 @@ export class CurrencyScrapperService {
           try {
             const resEur = await lastValueFrom(
               this.httpService
-                .post('http://10.160.10.92:3100/currency', JSON.stringify(eur), {
-                  headers: { 'Content-Type': 'application/json' },
-                })
+                .post(
+                  'http://10.160.10.92:3100/currency',
+                  JSON.stringify(eur),
+                  {
+                    headers: { 'Content-Type': 'application/json' },
+                  },
+                )
                 .pipe(
                   tap((resp) => console.log(resp)),
                   map((resp) => resp.data),
@@ -204,9 +213,13 @@ export class CurrencyScrapperService {
           try {
             const resUsd = await lastValueFrom(
               this.httpService
-                .post('http://10.160.10.92:3100/currency', JSON.stringify(usd), {
-                  headers: { 'Content-Type': 'application/json' },
-                })
+                .post(
+                  'http://10.160.10.92:3100/currency',
+                  JSON.stringify(usd),
+                  {
+                    headers: { 'Content-Type': 'application/json' },
+                  },
+                )
                 .pipe(
                   tap((resp) => console.log(resp)),
                   map((resp) => resp.data),
@@ -220,9 +233,13 @@ export class CurrencyScrapperService {
           try {
             const resPtr = await lastValueFrom(
               this.httpService
-                .post('http://10.160.10.92:3100/currency', JSON.stringify(ptr), {
-                  headers: { 'Content-Type': 'application/json' },
-                })
+                .post(
+                  'http://10.160.10.92:3100/currency',
+                  JSON.stringify(ptr),
+                  {
+                    headers: { 'Content-Type': 'application/json' },
+                  },
+                )
                 .pipe(
                   tap((resp) => console.log(resp)),
                   map((resp) => resp.data),
