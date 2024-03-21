@@ -9,12 +9,12 @@ import exp from 'constants';
 export class CurrencyScrapperService {
   constructor(private readonly httpService: HttpService) {}
 
-  //@Cron(CronExpression.EVERY_DAY_AT_7PM)
-  @Cron(CronExpression.EVERY_MINUTE)
+  @Cron(CronExpression.EVERY_DAY_AT_7PM)
+  //@Cron(CronExpression.EVERY_5_SECONDS)
   async scrapeExchangeRates() {
     const browser = await puppeteer.launch({
       headless: 'new',
-      executablePath: '/usr/bin/chromium-browser',
+      //executablePath: '/usr/bin/chromium-browser',
     });
     const page = await browser.newPage();
     let ratesDate = '';
@@ -24,7 +24,7 @@ export class CurrencyScrapperService {
     try {
       await page.goto(
         'https://www.bcv.org.ve/estadisticas/tipo-cambio-de-referencia-smc',
-        { timeout: 60000 },
+        { waitUntil: 'load', timeout: 0 },
       );
 
       const date = await page.waitForSelector('.date-display-single');
@@ -249,6 +249,7 @@ export class CurrencyScrapperService {
           } catch (error) {
             console.log('No se pudo insertar el PTR');
           }
+          
         }
       } catch (error) {
         console.log(error);
