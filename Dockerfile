@@ -19,6 +19,7 @@ COPY .env ./
 # Creates a "dist" folder with the production build
 RUN apt-get update && apt-get upgrade && apt-get install -y vim
 RUN apt install openssl -y
+RUN apt-get install chromium-browser
 RUN npm run build
 
 # Expose the port on which the app will run
