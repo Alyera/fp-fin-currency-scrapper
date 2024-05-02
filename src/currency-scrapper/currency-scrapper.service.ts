@@ -13,8 +13,8 @@ export class CurrencyScrapperService {
   //@Cron(CronExpression.EVERY_5_SECONDS)
   async scrapeExchangeRates() {
     const browser = await puppeteer.launch({
-      headless: 'new',
-      //executablePath: '/usr/bin/chromium-browser',
+      //headless: 'new',
+      executablePath: '/usr/bin/google-chrome',
     });
     const page = await browser.newPage();
     let ratesDate = '';
