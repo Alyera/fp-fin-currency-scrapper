@@ -9,8 +9,8 @@ import exp from 'constants';
 export class CurrencyScrapperService {
   constructor(private readonly httpService: HttpService) {}
 
-  @Cron(CronExpression.EVERY_DAY_AT_7PM)
-  //@Cron(CronExpression.EVERY_5_SECONDS)
+  //@Cron(CronExpression.EVERY_DAY_AT_7PM)
+  @Cron(CronExpression.EVERY_5_SECONDS)
   async scrapeExchangeRates() {
     const browser = await puppeteer.launch({
       //headless: 'new',
