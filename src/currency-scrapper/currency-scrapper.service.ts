@@ -9,13 +9,13 @@ import exp from 'constants';
 export class CurrencyScrapperService {
   constructor(private readonly httpService: HttpService) {}
 
-  //@Cron(CronExpression.EVERY_DAY_AT_7PM)
-  @Cron(CronExpression.EVERY_5_SECONDS)
+  @Cron(CronExpression.EVERY_DAY_AT_7PM)
+  //@Cron(CronExpression.EVERY_10_SECONDS)
   async scrapeExchangeRates() {
     const browser = await puppeteer.launch({
-      //headless: 'new',
-      executablePath: '/usr/bin/google-chrome',
-      args: ['--no-sandbox', '--disable-setuid-sandbox'],
+      headless: 'new',
+      //executablePath: '/usr/bin/google-chrome',
+      //args: ['--no-sandbox', '--disable-setuid-sandbox'],
     });
     const page = await browser.newPage();
     let ratesDate = '';
@@ -90,9 +90,11 @@ export class CurrencyScrapperService {
 
     //ratesDatePart[0] = '2024-05-06';
     const url = 'http://10.160.10.92:3100/currency/rates/' + ratesDatePart[0];
-    console.log(url);
+    //console.log(url);
 
-    let eur, usd, ptr = {}
+    let eur,
+      usd,
+      ptr = {};
 
     if (ratesDatePart[0] != '') {
       const today = new Date();
@@ -101,16 +103,21 @@ export class CurrencyScrapperService {
         parseInt(exchgDateSplit[0]),
         parseInt(exchgDateSplit[1]) - 1,
         parseInt(exchgDateSplit[2]),
+        0,
+        0,
+        0,
+        0,
       );
 
       //console.log(today.toLocaleDateString("sv") + ' ' + exchdate.toISOString());
       const newDate = new Date();
       newDate.setDate(today.getDate() + 1);
-      console.log(
+      const exchDate = new Date(newDate.toLocaleDateString('sv'))
+/*       console.log(
         exchdate.toLocaleDateString('sv') +
           ' ' +
           newDate.toLocaleDateString('sv'),
-      );
+      ); */
 
       /**
        * Consulta si existen tasas cargadas para la fecha valor
@@ -135,7 +142,7 @@ export class CurrencyScrapperService {
             eur = {
               EXGTBLID: 'VEB/EUR',
               CURNCYID: 'EUR',
-              EXCHDATE: newDate,
+              EXCHDATE: exchDate,
               TIME1: time1,
               XCHGRATE: parseFloat(eursubstr),
               EXPNDATE: expndate,
@@ -146,7 +153,7 @@ export class CurrencyScrapperService {
             usd = {
               EXGTBLID: 'VEB/USD',
               CURNCYID: 'USD',
-              EXCHDATE: newDate,
+              EXCHDATE: exchDate,
               TIME1: time1,
               XCHGRATE: parseFloat(usdsubstr),
               EXPNDATE: expndate,
@@ -162,7 +169,7 @@ export class CurrencyScrapperService {
             ptr = {
               EXGTBLID: 'VEB/PTR',
               CURNCYID: 'PTR',
-              EXCHDATE: newDate,
+              EXCHDATE: exchDate,
               TIME1: time1,
               XCHGRATE: ptrFinal,
               EXPNDATE: expndate,
@@ -231,6 +238,7 @@ export class CurrencyScrapperService {
             );
           } catch (error) {
             console.log('No se pudo insertar el EUR');
+            //console.log(error);
           }
 
           try {
