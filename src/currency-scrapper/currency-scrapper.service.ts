@@ -9,8 +9,8 @@ import exp from 'constants';
 export class CurrencyScrapperService {
   constructor(private readonly httpService: HttpService) {}
 
-  @Cron(CronExpression.EVERY_DAY_AT_7PM)
-  //@Cron(CronExpression.EVERY_5_SECONDS)
+  //@Cron(CronExpression.EVERY_DAY_AT_7PM)
+  @Cron(CronExpression.EVERY_10_MINUTES)
   async scrapeExchangeRates() {
     const browser = await puppeteer.launch({
       headless: 'new',
@@ -130,7 +130,7 @@ export class CurrencyScrapperService {
      * Base de Datos: DYNAMICS
      * Tabla: MC000100
      */
-    /* try {
+    try {
       const resEur = await lastValueFrom(
         this.httpService
           .post('http://localhost:3100/v1/currency', JSON.stringify(eur), {
@@ -168,7 +168,7 @@ export class CurrencyScrapperService {
       );
     } catch (error) {
       console.log(error.response.data);
-    } */
+    }
 
     const url = 'http://10.160.10.92:3100/currency/rates/' + ratesDatePart[0];
     console.log(url);
