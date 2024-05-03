@@ -10,12 +10,12 @@ export class CurrencyScrapperService {
   constructor(private readonly httpService: HttpService) {}
 
   //@Cron(CronExpression.EVERY_DAY_AT_7PM)
-  @Cron(CronExpression.EVERY_10_MINUTES)
+  @Cron(CronExpression.EVERY_5_SECONDS)
   async scrapeExchangeRates() {
     const browser = await puppeteer.launch({
       headless: 'new',
-      executablePath: '/usr/bin/google-chrome',
-      args: ['--no-sandbox', '--disable-setuid-sandbox'],
+      //executablePath: '/usr/bin/google-chrome',
+      //args: ['--no-sandbox', '--disable-setuid-sandbox'],
     });
     const page = await browser.newPage();
     let ratesDate = '';
@@ -28,6 +28,7 @@ export class CurrencyScrapperService {
         { waitUntil: 'load', timeout: 0 },
       );
 
+      //Se obtiene la FECHA VALOR
       const date = await page.waitForSelector('.date-display-single');
       ratesDate = await (
         await date.evaluate((el) => el.getAttribute('content'))
@@ -87,105 +88,126 @@ export class CurrencyScrapperService {
     const usdsubstr = dolarRate.substring(0, 5).replace(',', '.') + '00000';
     //const ptrsubstr = prtRate.substring(0,4).replace(',', '.') + '00000'
 
-    const eur = {
-      EXGTBLID: 'VEB/EUR',
-      CURNCYID: 'EUR',
-      EXCHDATE: exchdate,
-      TIME1: time1,
-      XCHGRATE: parseFloat(eursubstr),
-      EXPNDATE: expndate,
-    };
-
-    console.log(eur);
-
-    const usd = {
-      EXGTBLID: 'VEB/USD',
-      CURNCYID: 'USD',
-      EXCHDATE: exchdate,
-      TIME1: time1,
-      XCHGRATE: parseFloat(usdsubstr),
-      EXPNDATE: expndate,
-    };
-
-    console.log(usd);
-
-    const ptrCalc =
-      parseFloat(prtRate.replace(',', '.')) *
-      parseFloat(dolarRate.replace(',', '.'));
-    const ptrFinal = ptrCalc.toString().slice(0, 7);
-    console.log(ptrFinal);
-    const ptr = {
-      EXGTBLID: 'VEB/PTR',
-      CURNCYID: 'PTR',
-      EXCHDATE: exchdate,
-      TIME1: time1,
-      XCHGRATE: ptrFinal,
-      EXPNDATE: expndate,
-    };
-
-    console.log(ptr);
-
-    /**
-     * Inserta las tasas en la base de datos de MS Dynamics GP 2018
-     * Base de Datos: DYNAMICS
-     * Tabla: MC000100
-     */
-    try {
-      const resEur = await lastValueFrom(
-        this.httpService
-          .post('http://10.160.10.92:3100/currency', JSON.stringify(eur), {
-            headers: { 'Content-Type': 'application/json' },
-          })
-          .pipe(
-            tap((resp) => console.log(resp)),
-            map((resp) => resp.data),
-            tap((data) => console.log(data)),
-          ),
-      );
-    } catch (error) {
-      console.log(error.response.data);
-    }
-
-    try {
-      const resUsd = await lastValueFrom(
-        this.httpService.post('http://10.160.10.92:3100/currency', usd).pipe(
-          tap((resp) => console.log(resp)),
-          map((resp) => resp.data),
-          tap((data) => console.log(data)),
-        ),
-      );
-    } catch (error) {
-      console.log(error.response.data);
-    }
-
-    try {
-      const resPtr = await lastValueFrom(
-        this.httpService.post('http://10.160.10.92:3100/currency', ptr).pipe(
-          tap((resp) => console.log(resp)),
-          map((resp) => resp.data),
-          tap((data) => console.log(data)),
-        ),
-      );
-    } catch (error) {
-      console.log(error.response.data);
-    }
-
+    //ratesDatePart[0] = '2024-05-06';
     const url = 'http://10.160.10.92:3100/currency/rates/' + ratesDatePart[0];
     console.log(url);
 
+    let eur, usd, ptr = {}
+
     if (ratesDatePart[0] != '') {
+      const today = new Date();
+      const exchgDateSplit = ratesDatePart[0].split('-');
+      const exchdate = new Date(
+        parseInt(exchgDateSplit[0]),
+        parseInt(exchgDateSplit[1]) - 1,
+        parseInt(exchgDateSplit[2]),
+      );
+
+      //console.log(today.toLocaleDateString("sv") + ' ' + exchdate.toISOString());
+      const newDate = new Date();
+      newDate.setDate(today.getDate() + 1);
+      console.log(
+        exchdate.toLocaleDateString('sv') +
+          ' ' +
+          newDate.toLocaleDateString('sv'),
+      );
+
       /**
-       * Consulta si existen tasas cargadas para el dia
+       * Consulta si existen tasas cargadas para la fecha valor
        */
       try {
         const currencies = await lastValueFrom(
           this.httpService.get(url).pipe(),
         );
         if (Object.keys(currencies.data).length != 0) {
-          console.log('Ya hay tasas cargadas para la fecha ');
-          console.log(currencies.data);
+          console.log(
+            'Ya hay tasas cargadas para la fecha valor ' + ratesDatePart[0],
+          );
+          //console.log(currencies.data);
         } else {
-          console.log('No hay tasas cargadas. Se realizara la insercion!');
+          console.log(
+            'No hay tasas cargadas para la fecha valor. Se realizara la insercion!',
+          );
+          if (
+            exchdate.toLocaleDateString('sv') !=
+            newDate.toLocaleDateString('sv')
+          ) {
+            eur = {
+              EXGTBLID: 'VEB/EUR',
+              CURNCYID: 'EUR',
+              EXCHDATE: newDate,
+              TIME1: time1,
+              XCHGRATE: parseFloat(eursubstr),
+              EXPNDATE: expndate,
+            };
+
+            console.log(eur);
+
+            usd = {
+              EXGTBLID: 'VEB/USD',
+              CURNCYID: 'USD',
+              EXCHDATE: newDate,
+              TIME1: time1,
+              XCHGRATE: parseFloat(usdsubstr),
+              EXPNDATE: expndate,
+            };
+
+            console.log(usd);
+
+            const ptrCalc =
+              parseFloat(prtRate.replace(',', '.')) *
+              parseFloat(dolarRate.replace(',', '.'));
+            const ptrFinal = ptrCalc.toString().slice(0, 7);
+            console.log(ptrFinal);
+            ptr = {
+              EXGTBLID: 'VEB/PTR',
+              CURNCYID: 'PTR',
+              EXCHDATE: newDate,
+              TIME1: time1,
+              XCHGRATE: ptrFinal,
+              EXPNDATE: expndate,
+            };
+
+            console.log(ptr);
+          } else {
+            eur = {
+              EXGTBLID: 'VEB/EUR',
+              CURNCYID: 'EUR',
+              EXCHDATE: exchdate,
+              TIME1: time1,
+              XCHGRATE: parseFloat(eursubstr),
+              EXPNDATE: expndate,
+            };
+
+            console.log(eur);
+
+            usd = {
+              EXGTBLID: 'VEB/USD',
+              CURNCYID: 'USD',
+              EXCHDATE: exchdate,
+              TIME1: time1,
+              XCHGRATE: parseFloat(usdsubstr),
+              EXPNDATE: expndate,
+            };
+
+            console.log(usd);
+
+            const ptrCalc =
+              parseFloat(prtRate.replace(',', '.')) *
+              parseFloat(dolarRate.replace(',', '.'));
+            const ptrFinal = ptrCalc.toString().slice(0, 7);
+            console.log(ptrFinal);
+            ptr = {
+              EXGTBLID: 'VEB/PTR',
+              CURNCYID: 'PTR',
+              EXCHDATE: exchdate,
+              TIME1: time1,
+              XCHGRATE: ptrFinal,
+              EXPNDATE: expndate,
+            };
+
+            console.log(ptr);
+          }
           /**
            * Inserta las tasas en la base de datos de MS Dynamics GP 2018
            * Base de Datos: DYNAMICS
@@ -250,7 +272,6 @@ export class CurrencyScrapperService {
           } catch (error) {
             console.log('No se pudo insertar el PTR');
           }
-          
         }
       } catch (error) {
         console.log(error);
