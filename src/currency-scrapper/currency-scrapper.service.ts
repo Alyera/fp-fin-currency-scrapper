@@ -133,7 +133,7 @@ export class CurrencyScrapperService {
     try {
       const resEur = await lastValueFrom(
         this.httpService
-          .post('http://localhost:3100/v1/currency', JSON.stringify(eur), {
+          .post('http://10.160.10.92:3100/currency', JSON.stringify(eur), {
             headers: { 'Content-Type': 'application/json' },
           })
           .pipe(
@@ -148,7 +148,7 @@ export class CurrencyScrapperService {
 
     try {
       const resUsd = await lastValueFrom(
-        this.httpService.post('http://localhost:3000/v1/currency', usd).pipe(
+        this.httpService.post('http://10.160.10.92:3100/currency', usd).pipe(
           tap((resp) => console.log(resp)),
           map((resp) => resp.data),
           tap((data) => console.log(data)),
@@ -160,7 +160,7 @@ export class CurrencyScrapperService {
 
     try {
       const resPtr = await lastValueFrom(
-        this.httpService.post('http://localhost:3000/v1/currency', ptr).pipe(
+        this.httpService.post('http://10.160.10.92:3100/currency', ptr).pipe(
           tap((resp) => console.log(resp)),
           map((resp) => resp.data),
           tap((data) => console.log(data)),
